@@ -9,3 +9,5 @@ wheels/
 # Virtual environments
 .venv
 .env
+*.adk
+6-persistent-storage/my_agent_data.db
