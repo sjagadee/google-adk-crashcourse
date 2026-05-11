@@ -11,7 +11,60 @@ def get_current_time() -> dict:
 
 
 def refund_course(tool_context: ToolContext) -> dict:
-    pass
+    """
+    Simulates refunding the AI Marketing Platform course.
+    Updates state by removing the course from purchased_courses.
+    """
+    course_id = "ai_marketing_platform"
+    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+    # Get current purchased courses
+    current_purchased_courses = tool_context.state.get("purchased_courses", [])
+    
+    # Check if user owns the course
+    course_ids = [
+        course["id"] for course in current_purchased_courses if isinstance(course, dict)
+    ]
+    if course_id not in course_ids:
+        return {
+            "status": "error",
+            "message": "You don't own this course, so it can't be refunded.",
+        }
+        
+    # Create new list without the course to be refunded
+    new_purchased_courses = []
+    for course in current_purchased_courses:
+        # Skip empty entries or non-dict entries
+        if not course or not isinstance(course, dict):
+            continue
+        # Skip the course being refunded
+        if course.get("id") == course_id:
+            continue
+        # Keep all other courses
+        new_purchased_courses.append(course)
+        
+    # Update purchased courses in state via assignment
+    tool_context.state["purchased_courses"] = new_purchased_courses
+    
+    # Get current interaction history
+    current_interaction_history = tool_context.state.get("interaction_history", [])
+
+    # Create new interaction history with refund added
+    new_interaction_history = current_interaction_history.copy()
+    new_interaction_history.append(
+        {"action": "refund_course", "course_id": course_id, "timestamp": current_time}
+    )
+    
+    # Update interaction history in state via assignment
+    tool_context.state["interaction_history"] = new_interaction_history
+    
+    return {
+        "status": "success",
+        "message": """Successfully refunded the AI Marketing Platform course! 
+         Your $149 will be returned to your original payment method within 3-5 business days.""",
+        "course_id": course_id,
+        "timestamp": current_time,
+    }
 
 
 order_agent = Agent(
