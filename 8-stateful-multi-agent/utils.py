@@ -1,4 +1,5 @@
 from google.genai import types
+from google.adk.events import Event, EventActions
 from datetime import datetime
 
 
@@ -61,17 +62,13 @@ async def update_interaction_history(session_service, app_name, user_id, session
         # Add the interaction to interaction_history
         interaction_history.append(interaction)
         
-        # Create updated state
-        updated_state = session.state.copy()
-        updated_state["interaction_history"] = interaction_history
-        
-        # Create a new session with updated state
-        await session_service.create_session(
-            app_name=app_name,
-            user_id=user_id,
-            session_id=session_id,
-            state=updated_state,
+        # Update session state via event delta
+        event = Event(
+            invocation_id=session_id,
+            author="system",
+            actions=EventActions(state_delta={"interaction_history": interaction_history}),
         )
+        await session_service.append_event(session, event)
     except Exception as e:
         print(f"Error updating interaction history: {e}")
     
@@ -191,7 +188,7 @@ async def display_state(
         print(f"Error displaying state: {e}")
 
 
-async def process_agent_event(event):
+def process_agent_event(event):
     """Process each event and get the final response if available."""
 
     # Log basic event info
@@ -274,7 +271,7 @@ async def call_agent_async(runner, user_id, session_id, query):
                 agent_name = event.author
             
             # process each event and get the final response if available
-            response = await process_agent_event(event)
+            response = process_agent_event(event)
             if response:
                 final_response_text = response
     except Exception as e:
