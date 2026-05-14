@@ -12,7 +12,7 @@ A collection of progressive examples for building AI agents with [Google Agent D
 
 ```bash
 # Install dependencies
-uv sync
+uv add -r requirements.txt
 # or
 pip install -r requirements.txt
 ```

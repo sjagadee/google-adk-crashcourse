@@ -5,3 +5,4 @@ litellm
 google-generativeai
 python-dotenv
 greenlet
+crewai[tools]
